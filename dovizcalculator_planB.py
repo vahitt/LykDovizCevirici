@@ -1,17 +1,15 @@
 import json
-from urllib.request import urlopen
+import requests
 
 istenen_doviz = input("Hangi döviz türünü girmek istiyorsunuz:")
 ikinci_doviz = input("Hangi parabirimine göre görmek istiyorsunuz:")
 
-with urlopen("https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={doviz}&to_currency={doviz2}&apikey=5Y57NAHCNN1GRX1O".format(doviz = istenen_doviz,doviz2 = ikinci_doviz)) as sterlingRequest:
-    dovizSource = sterlingRequest.read()
+url = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={doviz}&to_currency={doviz2}&apikey=5Y57NAHCNN1GRX1O".format(doviz = istenen_doviz,doviz2 = ikinci_doviz)
 
-dovizData = json.loads(dovizSource)
+request_session = requests.session()
 
-def getdovizName():
-    dovizName = dovizData["Realtime Currency Exchange Rate"]["2. From_Currency Name"]
-    print(dovizSource)
-    return dovizName
+raw_data = request_session.get(url).content
 
-getdovizName()
+dovizData = json.loads(raw_data)
+
+print(dovizData)
