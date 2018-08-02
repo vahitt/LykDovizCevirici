@@ -14,8 +14,4 @@ def getdovizName():
     print(dovizSource)
     return dovizName
 
-def dovizCalculate():
-
-    result = dovizName.get(2) - dovizName.get(3)
-    return result
-
+getdovizName()
