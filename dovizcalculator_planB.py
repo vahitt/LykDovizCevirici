@@ -1,6 +1,6 @@
 import json
 import requests
-
+from pprint import pprint
 
 class Doviz():
     requests_session = requests.session()
@@ -13,11 +13,11 @@ class Doviz():
         
         seciminiz:             
         """)
-        
+
         if secim.isnumeric():
             secim = int(secim)
         else:
-            print("Lutfen gecerli bir secim yapiniz")
+            pprint("Lutfen gecerli bir secim yapiniz")
             return self.__init__()
         
         if secim == 1:
@@ -27,7 +27,7 @@ class Doviz():
         elif secim == 3:
             return self.toplu_cevir()
         else:
-            print("Lutfen gecerli bir secim yapiniz")
+            pprint("Lutfen gecerli bir secim yapiniz")
             return self.__init__()
     
     def tr_deger(self):
@@ -74,3 +74,7 @@ class Doviz():
         self.deger=degerler.get('5. Exchange Rate')
 
 doviz=Doviz()
+
+
+
+
