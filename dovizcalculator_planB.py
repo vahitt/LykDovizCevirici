@@ -4,7 +4,7 @@ import requests
 
 class Doviz():
     requests_session = requests.session()
-    
+
     def __init__(self):
         secim = input("""
         1 - TL -> USD EURO STERLIN GOSTER
@@ -34,8 +34,22 @@ class Doviz():
         dolar = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={doviz}&to_currency={doviz2}&apikey=5Y57NAHCNN1GRX1O".format(doviz='usd', doviz2='try')
         sterlin = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={doviz}&to_currency={doviz2}&apikey=5Y57NAHCNN1GRX1O".format(doviz='gbp', doviz2='try')
         euro ="https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={doviz}&to_currency={doviz2}&apikey=5Y57NAHCNN1GRX1O".format(doviz='eur', doviz2='try')
-        pass
-    
+        print("1TL karsılıkları\n")
+
+        for i in range(3):
+            if(i == 0):
+                self.getRequest(dolar)
+                dolar_data = self.deger
+                print("USD->{usd}\n" .format(usd =dolar_data) )
+            elif(i==1):
+                 self.getRequest(sterlin)
+                 sterlin_data = self.deger
+                 print("GBP->{gbp}\n".format(gbp = sterlin_data))
+            elif(i == 2):
+                 self.getRequest(euro)
+                 euro_data = self.deger
+                 print("EURO->{euro}\n".format(euro=euro_data))
+
     def cevir(self):
         pass
     
