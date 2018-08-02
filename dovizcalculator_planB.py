@@ -17,7 +17,7 @@ class Doviz():
         if secim.isnumeric():
             secim = int(secim)
         else:
-            print("Lutfen gecerli bir secim yapiniz")
+            pprint("Lutfen gecerli bir secim yapiniz")
             return self.__init__()
         
         if secim == 1:
