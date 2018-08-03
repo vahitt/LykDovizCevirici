@@ -60,8 +60,8 @@ class Doviz():
         pass
     
     def showWeek(self,h_dovizden,h_dovize):
-        url = "https://www.alphavantage.co/query?function=FX_WEEKLY&from_symbol={hangi_dovizden}&to_symbol" \
-              "={hangi_dovize}&apikey=5Y57NAHCNN1GRX1O".format(hangi_dovizden = h_dovizden,hangi_dovize=h_dovize)
+        url ="https://www.alphavantage.co/query?function=FX_MONTHLY&from_symbol={hangi_dovizden}&" \
+             "to_symbol={hangi_dovize}&apikey=5Y57NAHCNN1GRX1O".format(hangi_dovizden = h_dovizden,hangi_dovize=h_dovize)
         self.getRequest(url)
     def toplu_cevir(self):
         birinci_doviz = input("Hangi döviz türünü girmek istiyorsunuz:")
@@ -79,8 +79,15 @@ class Doviz():
         raw_data = self.requests_session.get(self.url).content
         dovizData = json.loads(raw_data)
 
-        if self.url.split("=")[1].split("&")[0] == "FX_WEEKLY":
-            print(dovizData)
+        if self.url.split("=")[1].split("&")[0] == "FX_MONTHLY":
+            parabirimi = dovizData.get("Meta Data")
+            tarih_gosterim = dovizData.get("Time Series FX (Monthly)")
+            print("{hangi_dovizden}->{hangi_dovize}"
+                  .format(hangi_dovizden = parabirimi.get("2. From Symbol"),hangi_dovize = parabirimi.get("3. To Symbol")))
+
+            for tarih in tarih_gosterim.keys():
+                tarih_kapanis = tarih_gosterim.get(tarih).get("4. close")
+                pprint("{tarih}->{tarih_kapanis}".format(tarih = tarih,tarih_kapanis=tarih_kapanis))
         else:
             self.deger=dovizData.get("rates").get(self.base)
             self.tarih=dovizData.get('date')
