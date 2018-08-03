@@ -1,6 +1,5 @@
 import json
 import requests
-from pprint import pprint
 
 class Doviz():
     
@@ -8,70 +7,82 @@ class Doviz():
     
     def __init__(self):
         self.api_url = "https://exchangeratesapi.io/api/latest?base={}"
+        self.monthly_url ="https://www.alphavantage.co/query?function=FX_MONTHLY&from_symbol={}&" \
+             "to_symbol={}&apikey=5Y57NAHCNN1GRX1O"
         self.requests_session = requests.session()
         
         secim = input("""
         1 - TL -> USD EURO STERLIN GOSTER
-        2 - DEGER CEVIR
-        3 - TOPLU CEVIR 
-        4 - HAFTALIK PARA BİRİMİNİN KARSILIGINI GOSTER
+        2 - TOPLU CEVIR 
+        3 - AYLIK DEGER DEGISIMI
         seciminiz:             
         """)
 
         if secim.isnumeric():
             secim = int(secim)
         else:
-            pprint("Lutfen gecerli bir secim yapiniz")
+            print("Lutfen gecerli bir secim yapiniz")
             return self.__init__()
         
         if secim == 1:
-            return self.tr_deger()
+            return self.trDeger()
         elif secim == 2:
-            return self.cevir()
+            return self.topluCevir()
         elif secim == 3:
-            return self.toplu_cevir()
-        elif secim == 4:
-            hangi_dovizden = input("Hangi dovizin karsılığını görmek istiyorusunuz:")
-            hangi_dovize = input("Karsılığını gostermek istediğiniz dövizi giriniz:")
-            return  self.showWeek(hangi_dovizden,hangi_dovize)
+            return  self.showMonthly()
         else:
-            pprint("Lutfen gecerli bir secim yapiniz")
+            print("Lutfen gecerli bir secim yapiniz")
             return self.__init__()
     
-    def tr_deger(self):
+    def trDeger(self):
         base = "TRY"
         dolar = self.api_url.format("USD")
         euro = self.api_url.format("EUR")
         sterlin = self.api_url.format("GBP")
         
-       
-        self.getRequest(dolar,base)
-        dolar_data = self.deger
-        self.getRequest(sterlin,base)
-        sterlin_data = self.deger
-        self.getRequest(euro,base)
-        euro_data = self.deger
+        def getter(*args):
+            for i in range(3):
+                self.getRequest(args[i],base)
+                yield self.deger
+        generator = getter(dolar,euro,sterlin)
         
-        print("\nDolar : {}\nEuro : {}\nSterlin : {}".format(dolar_data,euro_data,sterlin_data))
+        
+        print("\nDolar : {}\nEuro : {}\nSterlin : {}".format(next(generator),next(generator),next(generator)))
         
         return self.__init__()
-
-    def cevir(self):
-        pass
     
-    def showWeek(self,h_dovizden,h_dovize):
-        url ="https://www.alphavantage.co/query?function=FX_MONTHLY&from_symbol={hangi_dovizden}&" \
-             "to_symbol={hangi_dovize}&apikey=5Y57NAHCNN1GRX1O".format(hangi_dovizden = h_dovizden,hangi_dovize=h_dovize)
-        self.getRequest(url)
-    def toplu_cevir(self):
+    def showMonthly(self):
+        hangi_dovizden = input("Degisim hangi para birimine gore baz alinacak:")
+        hangi_dovize = input("Karsılığını gostermek istediğiniz birimi giriniz:")
+        url = self.monthly_url.format(hangi_dovizden,hangi_dovize)
+        
+        try:
+            self.getRequest(url)
+        except:
+            print("Hatali birim girisi ya da zaman asimi")
+            return self.__init__()
+        
+        for keys in self.monthly_data.keys():
+            print("Tarih: {}   Kapanis: {}".format(keys,self.monthly_data.get(keys).get('4. close')))
+        
+        return self.__init__()
+    
+    def topluCevir(self):
         birinci_doviz = input("Hangi döviz türünü girmek istiyorsunuz:")
         ikinci_doviz = input("Hangi parabirimine göre görmek istiyorsunuz:")
         miktar = float(input("Ne kadar bu birimden paranız var:"))
         
         url = self.api_url.format(birinci_doviz.upper())
         
-        self.getRequest(url,ikinci_doviz.upper())
-        print("{tarihli} tarihi itibariyle {ilkpara} {ilkbirim} ----->{ikinicipara} {ikinicibirim} değerindedir.".format(tarihli=self.tarih,ilkpara=float(miktar),ilkbirim=birinci_doviz,ikinicipara= float(self.deger) * miktar,ikinicibirim=ikinci_doviz))
+        try:
+            self.getRequest(url,ikinci_doviz.upper())
+        except:
+            print("Hatali birim girisi ya da zaman asimi")
+            return self.__init__()
+        
+        print("\n{tarihli} tarihi itibariyle\n{ilkpara} {ilkbirim} {ikinicipara} {ikinicibirim} değerindedir.".format(tarihli=self.tarih,ilkpara=float(miktar),ilkbirim=birinci_doviz,ikinicipara= float(self.deger) * miktar,ikinicibirim=ikinci_doviz))
+        
+        return self.__init__()
     
     def getRequest(self,url,base=None):
         self.url = url
@@ -80,21 +91,10 @@ class Doviz():
         dovizData = json.loads(raw_data)
 
         if self.url.split("=")[1].split("&")[0] == "FX_MONTHLY":
-            parabirimi = dovizData.get("Meta Data")
-            tarih_gosterim = dovizData.get("Time Series FX (Monthly)")
-            print("{hangi_dovizden}->{hangi_dovize}"
-                  .format(hangi_dovizden = parabirimi.get("2. From Symbol"),hangi_dovize = parabirimi.get("3. To Symbol")))
-
-            for tarih in tarih_gosterim.keys():
-                tarih_kapanis = tarih_gosterim.get(tarih).get("4. close")
-                pprint("{tarih}->{tarih_kapanis}".format(tarih = tarih,tarih_kapanis=tarih_kapanis))
+            self.monthly_data = dovizData.get("Time Series FX (Monthly)")
         else:
             self.deger=dovizData.get("rates").get(self.base)
             self.tarih=dovizData.get('date')
 
 
 doviz=Doviz()
-
-
-
-
