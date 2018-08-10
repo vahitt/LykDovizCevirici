@@ -7,7 +7,9 @@ from collections import OrderedDict
 class Doviz():
 
     def __init__(self):
-        self.api_url = "https://exchangeratesapi.io/api/latest?base={}"
+        self.api_url = "https://www.alphavantage.co/query?function=FX_INTRADAY&" \
+        "from_symbol={}&to_symbol={}&interval=1min&apikey=5Y57NAHCNN1GRX1O"
+
         self.monthly_url ="https://www.alphavantage.co/query?function=FX_MONTHLY&from_symbol={}&" \
              "to_symbol={}&apikey=5Y57NAHCNN1GRX1O"
         self.requests_session = requests.session()
@@ -41,9 +43,9 @@ class Doviz():
 
     def trDeger(self):
         base = "TRY"
-        dolar = self.api_url.format("USD")
-        euro = self.api_url.format("EUR")
-        sterlin = self.api_url.format("GBP")
+        dolar = self.api_url.format("USD", base)
+        euro = self.api_url.format("EUR", base)
+        sterlin = self.api_url.format("GBP", base)
 
 
         def getter(*args):
@@ -83,10 +85,10 @@ class Doviz():
         ikinci_doviz = input("Hangi parabirimine gore gormek istiyorsunuz:")
         miktar = float(input("Ne kadar bu birimden paranız var:"))
 
-        url = self.api_url.format(birinci_doviz.upper())
+        url = self.api_url.format(birinci_doviz.upper(),ikinci_doviz.upper())
 
         try:
-            self.getRequest(url,ikinci_doviz.upper())
+            self.getRequest(url)
         except:
             print("Hatali birim girisi ya da zaman asimi")
             logging.warning("Hatali birim girisi ya da zaman asimi")
@@ -101,15 +103,18 @@ class Doviz():
         self.base = base
 
 
-        raw_data = self.requests_session.get(self.url).content.decode('utf-8')
-        dovizData = json.loads(raw_data)
+        raw_data = self.requests_session.get(self.url).content
+        dovizData = json.loads(raw_data.decode('utf-8'),object_pairs_hook=OrderedDict)
 
         if self.url.split("=")[1].split("&")[0] == "FX_MONTHLY":
             self.monthly_data = dovizData.get("Time Series FX (Monthly)")
             logging.info("Aylik data istendi")
         else:
-            self.deger=dovizData.get("rates").get(self.base)
-            self.tarih=dovizData.get('date')
+            self.deger=dovizData.get("Time Series FX (1min)")
+            f_key = list(self.deger)[0]
+            self.deger = self.deger.get(f_key).get("4. close")
+
+            self.tarih=dovizData.get("Meta Data").get("4. Last Refreshed").split(' ')[0]
             logging.info("Ceviri datasi istendi")
 
 doviz=Doviz()
